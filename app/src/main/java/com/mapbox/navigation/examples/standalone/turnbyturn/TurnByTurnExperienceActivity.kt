@@ -237,7 +237,16 @@ class TurnByTurnExperienceActivity : AppCompatActivity() {
      * Observes when a new voice instruction should be played.
      */
     private val voiceInstructionsObserver = VoiceInstructionsObserver { voiceInstructions ->
-        speechApi.generate(voiceInstructions, speechCallback)
+        val ssml = voiceInstructions.ssmlAnnouncement()
+        if (ssml == null) {
+            speechApi.generate(voiceInstructions, speechCallback)
+            return@VoiceInstructionsObserver
+        }
+
+        val rewrittenInstructions = voiceInstructions.toBuilder()
+            .ssmlAnnouncement(JeitaSsml(ssml).polly())
+            .build()
+        speechApi.generate(rewrittenInstructions, speechCallback)
     }
 
     /**
